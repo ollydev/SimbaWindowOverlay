@@ -72,9 +72,6 @@
               <StackChecks Value="True"/>
             </Checks>
             <TargetCPU Value="i386"/>
-            <Optimizations>
-              <OptimizationLevel Value="3"/>
-            </Optimizations>
           </CodeGeneration>
           <Linking>
             <Options>
@@ -119,7 +116,7 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="release/Layer/"/>
+      <Filename Value="build/libWindowOverlay"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>

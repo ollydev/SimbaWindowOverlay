@@ -74,7 +74,7 @@ begin
         WM_LBUTTONDOWN:
           Button := 1;
         WM_MOUSEMOVE:
-          if Layer.DrawMousePath then
+          if (not Layer.DrawMouseManual) then
             Layer.AddMouseHistory(P.X, P.Y);
       end;
 
@@ -105,7 +105,7 @@ begin
     Handle := GetFocus();
     Layer := GetOverlay(GetAncestor(Handle, GA_ROOT));
 
-    if (Layer <> nil) and (@Layer.OnKey <> nil) and ((Handle = Layer.Target) or Layer.HasChild(Handle)) then
+    if (Layer <> nil) and (Layer.OnKey <> nil) and ((Handle = Layer.Target) or Layer.HasChild(Handle)) then
     begin
       GetKeyboardState(State);
 

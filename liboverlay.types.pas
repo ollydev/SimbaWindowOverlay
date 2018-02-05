@@ -30,7 +30,7 @@ type
 function ColorToRGB(Color: Int32): TRGB32; inline;
 function RGBToColor(RGB: TRGB32): Int32; inline;
 
-procedure TPALine(var TPA: TPointArray; const P1: TPoint; const P2: TPoint);
+procedure TPALine(var TPA: TPointArray; const P1: TPoint; const P2: TPoint); inline;
 
 implementation
 
@@ -46,6 +46,7 @@ begin
   Result := RGB.R or RGB.G shl 8 or RGB.B shl 16;
 end;
 
+// Slacky!
 procedure TPALine(var TPA: TPointArray; const P1: TPoint; const P2: TPoint);
 var
   dx,dy,step,I,H: Int32;

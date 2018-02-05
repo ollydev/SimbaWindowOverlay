@@ -28,7 +28,9 @@ type
     FHeight: Int32;
     FScriptThread: HANDLE;
     FMouseHistory: array of record Point: TPoint; LifeSpan: UInt64; end;
-    FDrawMousePath: Boolean;
+    FDrawMouseManual: Boolean;
+    FDrawMouse: Boolean;
+    FDrawMouseCursor: Boolean;
 
     procedure SetPaintInterval(Interval: Int32);
   public
@@ -40,12 +42,14 @@ type
     property Height: Int32 read FHeight;
     property PaintInterval: Int32 read FPaintInterval write SetPaintInterval;
     property Offset: POINT read FOffset;
-    property DrawMousePath: Boolean read FDrawMousePath write FDrawMousePath;
     property Bitmaps: TOverlayBitmaps read FBitmaps;
+    property DrawMouse: Boolean read FDrawMouse write FDrawMouse;
+    property DrawMouseManual: Boolean read FDrawMouseManual write FDrawMouseManual;
+    property DrawMouseCursor: Boolean read FDrawMouseCursor write FDrawMouseCursor;
 
     function ScriptActive: Boolean;
 
-    procedure AddMouseHistory(X, Y: Int32);
+    procedure AddMouseHistory(X, Y: Int32; Manual: Boolean = False); inline;
     function Add(X, Y, AWidth, AHeight: Int32): TOverlayBitmap;
 
     procedure AddChild(Handle: HWND);
@@ -62,7 +66,7 @@ type
     procedure BeginUpdate;
     procedure EndUpdate;
 
-    procedure Paint;
+    procedure Paint; inline;
 
     constructor Create(ATargetWindow: HWND; AScriptThread: UInt32);
     destructor Destroy; override;
@@ -163,22 +167,25 @@ begin
   Result := GetExitCodeThread(FScriptThread, Code) and (Code = STILL_ACTIVE);
 end;
 
-procedure TWindowOverlay.AddMouseHistory(X, Y: Int32);
+procedure TWindowOverlay.AddMouseHistory(X, Y: Int32; Manual: Boolean);
 var
   i: Int32;
 begin
-  if (Length(FMouseHistory) > 0) and ((Abs(FMouseHistory[0].Point.X - X) + Abs(FMouseHistory[0].Point.Y - Y)) < 10) then
-    Exit;
+  if FDrawMouse and (FDrawMouseManual = Manual) then
+  begin
+    if (Length(FMouseHistory) > 0) and ((Abs(FMouseHistory[0].Point.X - X) + Abs(FMouseHistory[0].Point.Y - Y)) < 10) then
+      Exit;
 
-  if (Length(FMouseHistory) < 150) then
-    SetLength(FMouseHistory, Length(FMouseHistory) + 1);
+    if (Length(FMouseHistory) < 150) then
+      SetLength(FMouseHistory, Length(FMouseHistory) + 1);
 
-  for i := High(FMouseHistory) downto 1 do
-    FMouseHistory[i] := FMouseHistory[i - 1];
+    for i := High(FMouseHistory) downto 1 do
+      FMouseHistory[i] := FMouseHistory[i - 1];
 
-  FMouseHistory[0].Point.X := X;
-  FMouseHistory[0].Point.Y := Y;
-  FMouseHistory[0].LifeSpan := GetTickCount64() + 1250;
+    FMouseHistory[0].Point.X := X;
+    FMouseHistory[0].Point.Y := Y;
+    FMouseHistory[0].LifeSpan := GetTickCount64() + 1250;
+  end;
 end;
 
 function TWindowOverlay.Add(X, Y, AWidth, AHeight: Int32): TOverlayBitmap;
@@ -277,6 +284,7 @@ var
   i: Int32;
   T: UInt64;
   Path: TPointArray;
+  Cursor: POINT;
 begin
   DC := GetWindowDC(FWindow);
 
@@ -284,20 +292,36 @@ begin
   Move(FBitmaps[0].Data[0], FBitmaps[1].Data[0], FWidth * FHeight * SizeOf(TRGB32));
 
   // Draw mouse history
-  if FDrawMousePath and (FPaintInterval > 0) then
+  if FDrawMouse and (FPaintInterval > 0) then
   begin
     T := GetTickCount64();
     for i := 0 to High(FMouseHistory) do
       if (T > FMouseHistory[i].LifeSpan) then
         Break;
 
-    if (i > 1) then
-    begin
-      for i := 0 to i - 2 do
-        TPALine(Path, FMouseHistory[i].Point, FMouseHistory[i + 1].Point);
+   if GetCursorPos(Cursor) then
+   begin
+     Cursor.X -= WindowRect(FTarget).Left;
+     Cursor.Y -= WindowRect(FTarget).Top;
+     Cursor.X -= FOffset.X;
+     Cursor.Y -= FOffset.Y;
 
-      FBitmaps[1].DrawTPARainbow(Path);
-    end;
+      if (i > 1) then
+      begin
+        for i := 0 to i - 2 do
+          TPALine(Path, FMouseHistory[i].Point, FMouseHistory[i + 1].Point);
+
+        TPALine(Path, Path[0], TPoint(Cursor));
+
+        FBitmaps[1].DrawTPARainbow(Path);
+      end;
+
+      if FDrawMouseCursor then
+      begin
+        FBitmaps[1].DrawLine(Classes.Point(Cursor.X - 5, Cursor.Y - 5), Classes.Point(Cursor.X + 5, Cursor.Y + 5), $0200FF);
+        FBitmaps[1].DrawLine(Classes.Point(Cursor.X + 5, Cursor.Y - 5), Classes.Point(Cursor.X - 5, Cursor.Y + 5), $0200FF);
+      end;
+   end;
   end;
 
   // Draw bitmaps
