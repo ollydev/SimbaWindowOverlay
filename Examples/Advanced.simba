@@ -19,7 +19,6 @@ var
   R: Int32;
 begin
   Overlay := TWindowOverlay.Create();
-  Overlay.SetMousePath(True);
   Overlay.SetOnClick(@OnClick);
   Overlay.SetOnKeyPress(@OnKeyPress);
   Overlay.PaintInterval(100);
