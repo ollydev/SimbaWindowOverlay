@@ -13,7 +13,7 @@ type
 
   TOverlayBitmap = class
   private
-    FFonts: array of record Name: String; Size: Int32; Handle: HFONT; Quaility: Int32; end;
+    FFonts: array of record Name: String; Size: Int32; Handle: HFONT; Bold: Int32; Quaility: Int32; end;
     FDC: HDC;
     FBitmap: HBitmap;
     FData: PRGB32;
@@ -21,7 +21,7 @@ type
     FWidth, FHeight: Int32;
     FDrawing: Boolean;
 
-    function SetFont(Name: String; Size: Int32; Smooth: Boolean): HGDIOBJ;
+    function SetFont(Name: String; Size: Int32; Bold, Smooth: Boolean): HGDIOBJ;
   public
     property Data: PRGB32 read FData;
     property DC: HDC read FDC;
@@ -40,11 +40,11 @@ type
     procedure DrawTPARainbow(TPA: TPointArray);
     procedure DrawTPA(TPA: TPointArray; Color: Int32);
     procedure DrawATPA(ATPA: T2DPointArray);
-    procedure DrawText(Text, Font: String; Size: Int32; Smooth: Boolean; Position: TPoint; Color: Int32); overload;
-    procedure DrawText(Text, Font: String; Size: Int32; Smooth: Boolean; WordBreak: Boolean; Box: TBox; Color: Int32); overload;
+    procedure DrawText(Text, Font: String; Size: Int32; Bold, Smooth: Boolean; Position: TPoint; Color: Int32); overload;
+    procedure DrawText(Text, Font: String; Size: Int32; Bold, Smooth: Boolean; WordBreak: Boolean; Box: TBox; Color: Int32); overload;
 
-    procedure CalculateText(Text, Font: String; Size: Int32; var W, H: Int32); overload;
-    procedure CalculateText(Text, Font: String; Size: Int32; WordBreak: Boolean; var Box: TBox); overload;
+    procedure CalculateText(Text, Font: String; Size: Int32; Bold: Boolean; var W, H: Int32); overload;
+    procedure CalculateText(Text, Font: String; Size: Int32; Bold: Boolean; WordBreak: Boolean; var Box: TBox); overload;
 
     procedure Clear(Color: Int32 = 0); overload;
     procedure Clear(Box: TBox; Color: Int32 = 0); overload;
@@ -205,26 +205,32 @@ begin
     DrawTPA(ATPA[i], Random($FFFFFF));
 end;
 
-function TOverlayBitmap.SetFont(Name: String; Size: Int32; Smooth: Boolean): HGDIOBJ;
+function TOverlayBitmap.SetFont(Name: String; Size: Int32; Bold, Smooth: Boolean): HGDIOBJ;
 var
   i: Int32;
-  Quality: Int32;
+  Quality, isBold: Int32;
 begin
   if Smooth then
     Quality := ANTIALIASED_QUALITY
   else
     Quality := NONANTIALIASED_QUALITY;
 
+  if Bold then
+    isBold := FW_BOLD
+  else
+    isBold := FW_NORMAL;
+
   for i := 0 to High(FFonts) do
-    if (FFonts[i].Name = Name) and (FFonts[i].Size = Size) and (FFonts[i].Quaility = Quality) then
+    if (FFonts[i].Name = Name) and (FFonts[i].Size = Size) and (FFonts[i].Quaility = Quality) and (FFonts[i].Bold = isBold) then
       Exit(SelectObject(FDC, FFonts[i].Handle));
 
   SetLength(FFonts, Length(FFonts) + 1);
 
+  FFonts[High(FFonts)].Bold := isBold;
   FFonts[High(FFonts)].Quaility := Quality;
   FFonts[High(FFonts)].Size := Size;
   FFonts[High(FFonts)].Name := Name;
-  FFonts[High(FFonts)].Handle := CreateFont(-Trunc((Size * GetDeviceCaps(FDC, LOGPIXELSY) / 72) + 0.5), 0, 0, 0, FW_NORMAL, 0, 0 , 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, FFonts[High(FFonts)].Quaility, DEFAULT_PITCH, PChar(Name));
+  FFonts[High(FFonts)].Handle := CreateFont(-Trunc((Size * GetDeviceCaps(FDC, LOGPIXELSY) / 72) + 0.5), 0, 0, 0, FFonts[High(FFonts)].Bold, 0, 0 , 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, FFonts[High(FFonts)].Quaility, DEFAULT_PITCH, PChar(Name));
 
   Result := SelectObject(FDC, FFonts[High(FFonts)].Handle);
 end;
@@ -240,17 +246,20 @@ end;
 
 procedure TOverlayBitmap.Draw(P: TPoint; Src: PRGB32; SrcW, SrcH: Int32);
 var
-  MinW, MinH, Y: Int32;
+  Y, W, H: Int32;
 begin
-  MinH := SrcH;
-  if (P.Y + SrcH) >= FHeight then
-    MinH := SrcH + ((FHeight - 1) - (P.Y + SrcH));
-  MinW := SrcW;
-  if (P.Y + SrcW) >= FWidth then
-    MinH := SrcW + ((FWidth - 1) - (P.Y + SrcW));
+  if (P.X < 0) or (P.Y < 0) or (P.X >= FWidth) or (P.Y >= FHeight) then
+    Exit;
 
-  for Y := 0 to MinH - 1 do
-    Move(Src[Y * SrcW], FData[(Y + P.Y) * FWidth + P.X], MinW * SizeOf(TRGB32));
+  W := SrcW;
+  if (P.X + SrcW) > FWidth then
+    W := FWidth - P.X;
+  H := P.Y + SrcH;
+  if (H > FHeight) then
+    H := FHeight;
+
+  for Y := P.Y to H - 1 do
+    Move(Src[(Y - P.Y) * SrcW], FData[Y * FWidth + P.X], W * SizeOf(TRGB32));
 end;
 
 procedure TOverlayBitmap.Draw(P: TPoint; BMP: TOverlayBitmap);
@@ -267,12 +276,12 @@ begin
   DrawTPA(TPA, Color);
 end;
 
-procedure TOverlayBitmap.DrawText(Text, Font: String; Size: Int32; Smooth: Boolean; Position: TPoint; Color: Int32);
+procedure TOverlayBitmap.DrawText(Text, Font: String; Size: Int32; Bold, Smooth: Boolean; Position: TPoint; Color: Int32);
 var
   R: TRect;
   F: HGDIOBJ;
 begin
-  F := SetFont(Font, Size, Smooth);
+  F := SetFont(Font, Size, Bold, Smooth);
 
   SetBkMode(FDC, TRANSPARENT);
   SetTextColor(FDC, Color);
@@ -287,12 +296,12 @@ begin
   SelectObject(FDC, F);
 end;
 
-procedure TOverlayBitmap.DrawText(Text, Font: String; Size: Int32; Smooth: Boolean; WordBreak: Boolean; Box: TBox; Color: Int32);
+procedure TOverlayBitmap.DrawText(Text, Font: String; Size: Int32; Bold, Smooth: Boolean; WordBreak: Boolean; Box: TBox; Color: Int32);
 var
   R: TRect;
   F: HGDIOBJ;
 begin
-  F := SetFont(Font, Size, Smooth);
+  F := SetFont(Font, Size, Bold, Smooth);
 
   SetBkMode(FDC, TRANSPARENT);
   SetTextColor(FDC, Color);
@@ -310,12 +319,12 @@ begin
   SelectObject(FDC, F);
 end;
 
-procedure TOverlayBitmap.CalculateText(Text, Font: String; Size: Int32; var W, H: Int32);
+procedure TOverlayBitmap.CalculateText(Text, Font: String; Size: Int32; Bold: Boolean; var W, H: Int32);
 var
   F: HGDIOBJ;
   S: TSize;
 begin
-  F := SetFont(Font, Size, False);
+  F := SetFont(Font, Size, Bold, False);
   S := Default(TSize);
   GetTextExtentPoint(FDC, PChar(Text), Length(Text), S);
 
@@ -325,12 +334,12 @@ begin
   SelectObject(FDC, F);
 end;
 
-procedure TOverlayBitmap.CalculateText(Text, Font: String; Size: Int32; WordBreak: Boolean; var Box: TBox);
+procedure TOverlayBitmap.CalculateText(Text, Font: String; Size: Int32; Bold: Boolean; WordBreak: Boolean; var Box: TBox);
 var
   F: HGDIOBJ;
   R: TRect;
 begin
-  F := SetFont(Font, Size, False);
+  F := SetFont(Font, Size, Bold, False);
 
   R.Left := Box.X1;
   R.Top := Box.Y1;

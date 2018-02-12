@@ -66,6 +66,7 @@ begin
     step := Abs(dx)
   else
     step := Abs(dy);
+
   SetLength(TPA, (H+step+1));
 
   rx := dx / step;

@@ -74,8 +74,7 @@ begin
         WM_LBUTTONDOWN:
           Button := 1;
         WM_MOUSEMOVE:
-          if (not Layer.DrawMouseManual) then
-            Layer.AddMouseHistory(P.X, P.Y);
+          Layer.AddMouseHistory(P.X, P.Y);
       end;
 
       if (Button > -1) and (Layer.OnClick <> nil) and Layer.ScriptActive then

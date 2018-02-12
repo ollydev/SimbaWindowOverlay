@@ -95,10 +95,10 @@ begin
   PWindowOverlay(Params^[0])^.AddMouseHistory(PInt32(Params^[1])^, PInt32(Params^[2])^, PBoolean(Params^[3])^);
 end;
 
-// procedure DrawText(Text, Font: String; Size: Int32; Smooth: Boolean; Color: Int32; Position: TPoint);
+// procedure DrawText(Text, Font: String; Size: Int32; Bold, Smooth: Boolean; Color: Int32; Position: TPoint);
 procedure Lape_Bitmap_DrawText(const Params: PParamArray); cdecl;
 begin
-  POverlayBitmap(Params^[0])^.DrawText(PString(Params^[1])^, PString(Params^[2])^, PInt32(Params^[3])^, PBoolean(Params^[4])^, PPoint(Params^[5])^, PInt32(Params^[6])^);
+  POverlayBitmap(Params^[0])^.DrawText(PString(Params^[1])^, PString(Params^[2])^, PInt32(Params^[3])^, PBoolean(Params^[4])^, PBoolean(Params^[5])^, PPoint(Params^[6])^, PInt32(Params^[7])^);
 end;
 
 // procedure DrawCircle(P: TPoint; Radius: Int32; Fill: Boolean; Color: Int32);
@@ -137,22 +137,22 @@ begin
   POverlayBitmap(Params^[0])^.Clear(PBox(Params^[1])^, PInt32(Params^[2])^);
 end;
 
-// procedure CalculateText(Text, Font: String; Size: Int32; var W, H: Int32);
+// procedure CalculateText(Text, Font: String; Size: Int32; Bold: Boolean; var W, H: Int32);
 procedure Lape_Bitmap_CalculateText(const Params: PParamArray); cdecl;
 begin
-  POverlayBitmap(Params^[0])^.CalculateText(PString(Params^[1])^, PString(Params^[2])^, PInt32(Params^[3])^, PInt32(Params^[4])^, PInt32(Params^[5])^);
+  POverlayBitmap(Params^[0])^.CalculateText(PString(Params^[1])^, PString(Params^[2])^, PInt32(Params^[3])^, PBoolean(Params^[4])^, PInt32(Params^[5])^, PInt32(Params^[6])^);
 end;
 
-// procedure DrawText(Text, Font: String; Size: Int32; Smooth: Boolean; WordBreak: Boolean; Box: TBox; Color: Int32);
+// procedure DrawText(Text, Font: String; Size: Int32; Bold, Smooth: Boolean; WordBreak: Boolean; Box: TBox; Color: Int32);
 procedure Lape_Bitmap_DrawTextEx(const Params: PParamArray); cdecl;
 begin
-  POverlayBitmap(Params^[0])^.DrawText(PString(Params^[1])^, PString(Params^[2])^, PInt32(Params^[3])^, PBoolean(Params^[4])^, PBoolean(Params^[5])^, PBox(Params^[6])^, PInt32(Params^[7])^);
+  POverlayBitmap(Params^[0])^.DrawText(PString(Params^[1])^, PString(Params^[2])^, PInt32(Params^[3])^, PBoolean(Params^[4])^, PBoolean(Params^[5])^, PBoolean(Params^[6])^, PBox(Params^[7])^, PInt32(Params^[8])^);
 end;
 
-// procedure CalculateText(Text, Font: String; Size: Int32; WordBreak: Boolean; var Box: TBox)
+// procedure CalculateText(Text, Font: String; Size: Int32; Bold: Boolean; WordBreak: Boolean; var Box: TBox)
 procedure Lape_Bitmap_CalculateTextEx(const Params: PParamArray); cdecl;
 begin
-  POverlayBitmap(Params^[0])^.CalculateText(PString(Params^[1])^, PString(Params^[2])^, PInt32(Params^[3])^, PBoolean(Params^[4])^, PBox(Params^[5])^);
+  POverlayBitmap(Params^[0])^.CalculateText(PString(Params^[1])^, PString(Params^[2])^, PInt32(Params^[3])^, PBoolean(Params^[4])^, PBoolean(Params^[5])^, PBox(Params^[6])^);
 end;
 
 procedure Lape_Bitmap_Width(const Params: PParamArray; const Result: Pointer); cdecl;
@@ -305,7 +305,7 @@ begin
     14:
       begin
         Addr := @Lape_Bitmap_DrawText;
-        StrPCopy(Decl, 'procedure TOverlayBitmap.DrawText(Text, Font: String; Size: Int32; Smooth: Boolean; Position: TPoint; Color: Int32); constref; native;');
+        StrPCopy(Decl, 'procedure TOverlayBitmap.DrawText(Text, Font: String; Size: Int32; Bold: Boolean; Smooth: Boolean; Position: TPoint; Color: Int32); constref; native;');
       end;
     15:
       begin
@@ -340,17 +340,17 @@ begin
     21:
       begin
         Addr := @Lape_Bitmap_CalculateText;
-        StrPCopy(Decl, 'procedure TOverlayBitmap.CalculateText(Text, Font: String; Size: Int32; var W, H: Int32); constref; overload; native;');
+        StrPCopy(Decl, 'procedure TOverlayBitmap.CalculateText(Text, Font: String; Size: Int32; Bold: Boolean; var W, H: Int32); constref; overload; native;');
       end;
     22:
       begin
         Addr := @Lape_Bitmap_DrawTextEx;
-        StrPCopy(Decl, 'procedure TOverlayBitmap.DrawText(Text, Font: String; Size: Int32; Smooth: Boolean; WordBreak: Boolean; Box: TBox; Color: Int32); constref; overload; native;');
+        StrPCopy(Decl, 'procedure TOverlayBitmap.DrawText(Text, Font: String; Size: Int32; Bold: Boolean; Smooth: Boolean; WordBreak: Boolean; Box: TBox; Color: Int32); constref; overload; native;');
       end;
     23:
       begin
         Addr := @Lape_Bitmap_CalculateTextEx;
-        StrPCopy(Decl, 'procedure TOverlayBitmap.CalculateText(Text, Font: String; Size: Int32; WordBreak: Boolean; var Box: TBox); constref; overload; native;');
+        StrPCopy(Decl, 'procedure TOverlayBitmap.CalculateText(Text, Font: String; Size: Int32; Bold: Boolean; WordBreak: Boolean; var Box: TBox); constref; overload; native;');
       end;
     24:
       begin

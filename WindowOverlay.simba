@@ -78,9 +78,9 @@ end;
 
 // --- Window Overlay Helpers ----
 
-procedure TWindowOverlay.DrawText(Text, Font: String; Size: Int32; Smooth: Boolean; Position: TPoint; Color: Int32); constref;
+procedure TWindowOverlay.DrawText(Text, Font: String; Size: Int32; Bold, Smooth: Boolean; Position: TPoint; Color: Int32); constref;
 begin
-  Self.Bitmaps[0].DrawText(Text, Font, Size, Smooth, Position, Color);
+  Self.Bitmaps[0].DrawText(Text, Font, Size, Bold, Smooth, Position, Color);
 end;
 
 procedure TWindowOverlay.DrawCircle(P: TPoint; Radius: Int32; Fill: Boolean; Color: Int32); constref;
@@ -113,19 +113,19 @@ begin
   Self.Bitmaps[0].Clear(Box, Color);
 end;
 
-procedure TWindowOverlay.CalculateText(Text, Font: String; Size: Int32; var W, H: Int32); constref; overload;
+procedure TWindowOverlay.CalculateText(Text, Font: String; Size: Int32; Bold: Boolean; var W, H: Int32); constref; overload;
 begin
-  Self.Bitmaps[0].CalculateText(Text, Font, Size, W, H);
+  Self.Bitmaps[0].CalculateText(Text, Font, Size, Bold, W, H);
 end;
 
-procedure TWindowOverlay.DrawText(Text, Font: String; Size: Int32; Smooth: Boolean; WordBreak: Boolean; Box: TBox; Color: Int32); constref; overload;
+procedure TWindowOverlay.DrawText(Text, Font: String; Size: Int32; Bold, Smooth: Boolean; WordBreak: Boolean; Box: TBox; Color: Int32); constref; overload;
 begin
-  Self.Bitmaps[0].DrawText(Text, Font, Size, Smooth, WordBreak, Box, Color);
+  Self.Bitmaps[0].DrawText(Text, Font, Size, Bold, Smooth, WordBreak, Box, Color);
 end;
 
-procedure TWindowOverlay.CalculateText(Text, Font: String; Size: Int32; WordBreak: Boolean; var Box: TBox); constref; overload;
+procedure TWindowOverlay.CalculateText(Text, Font: String; Size: Int32; Bold: Boolean; WordBreak: Boolean; var Box: TBox); constref; overload;
 begin
-  Self.Bitmaps[0].CalculateText(Text, Font, Size, WordBreak, Box);
+  Self.Bitmaps[0].CalculateText(Text, Font, Size, Bold, WordBreak, Box);
 end;
 
 function TWindowOverlay.Width: Int32; constref;
