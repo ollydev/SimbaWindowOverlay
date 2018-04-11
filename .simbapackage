@@ -6,3 +6,5 @@ directory=Includes
 extract_in_directory=false
 // collapse top level folders
 collapse=false
+// files not to install
+blacklist=.gitignore,.simbapackage
