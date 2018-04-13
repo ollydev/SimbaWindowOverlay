@@ -1,4 +1,4 @@
-{$loadlib ../Includes/WindowOverlay/libWindowOverlay.dll}
+{$loadlib ../Includes/WindowOverlay/libWindowOverlay}
 
 // --- Overlay Window --- \\
 
