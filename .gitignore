@@ -1,3 +1,5 @@
-/*.lps
-/src/lib
-/src/backup
+/*.bat
+/*.res
+/lib
+/backup
+/*.dll
