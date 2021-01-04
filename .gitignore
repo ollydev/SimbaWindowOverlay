@@ -2,4 +2,4 @@
 /*.res
 /lib
 /backup
-/*.dll
+/source/*.dll
